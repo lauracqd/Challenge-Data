@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pradata — Mésinformation climatique</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#F6F6F5; --text:#0A0A0A; --muted:rgba(10,10,10,.46); --dim:rgba(10,10,10,.26);
+  --f1:#29779E; --f2:#7CCA81; --f3:#EDF249;
+  --c1:#29779E; --c2:#67B7AF; --c3:#7CCA81; --c4:#B1F573; --c5:#EDF249; --c6:#D0D540;
+  /* palette thèmes (verts) */
+  --th1:#69AC6E; --th2:#7CCA81; --th3:#9DD865; --th4:#B1F573; --th5:#D0D540; --th6:#DBE27E;
+  --shadow:0 4px 24px rgba(0,0,0,.08); --shadow-h:0 16px 48px rgba(0,0,0,.13);
+  --f:'Poppins',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;cursor:none!important}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--f);font-size:14px;line-height:1.65;overflow-x:hidden}
+
+.blob{position:absolute;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:0;
+  width:700px;height:700px;
+  background:radial-gradient(circle,var(--f3) 0%,var(--f2) 40%,var(--f1) 100%);opacity:.44}
+
+#cur{position:fixed;pointer-events:none;z-index:9999;width:20px;height:20px;left:0;top:0}
+#cur-tri{transition:fill .13s}
+#scrollLine{position:fixed;top:0;left:0;height:3px;background:var(--f3);z-index:600;width:0;transition:width .08s linear}
+
+/* ── Nav ── */
+nav{position:sticky;top:0;z-index:500;padding:0 56px;height:54px;display:flex;align-items:center;
+  justify-content:space-between;background:rgba(246,246,245,.72);
+  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
+.nav-logo{font-size:14px;font-weight:300;letter-spacing:.02em;color:var(--text);text-decoration:none;text-transform:uppercase;opacity:.7}
+.nav-logo strong{font-weight:900;opacity:1;color:var(--text)}
+.nav-links{display:flex;gap:2px;list-style:none}
+.nav-links a{font-size:8.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+  text-decoration:none;padding:5px 11px;border-radius:4px;transition:all .15s}
+.nav-links a:hover{color:var(--text);background:rgba(0,0,0,.06)}
+.nav-links a.active{color:#fff;background:var(--text)}
+.nav-burger{display:none;flex-direction:column;gap:5px;background:none;border:none;padding:6px}
+.nav-burger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px;transition:.2s}
+.nav-mobile{display:none;position:fixed;top:54px;left:0;right:0;background:rgba(246,246,245,.97);
+  backdrop-filter:blur(22px);z-index:499;flex-direction:column;padding:12px 20px 20px;gap:2px;
+  border-bottom:1px solid rgba(0,0,0,.07)}
+.nav-mobile.open{display:flex}
+.nav-mobile a{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+  text-decoration:none;padding:10px 14px;border-radius:6px;transition:all .15s}
+.nav-mobile a.active,.nav-mobile a:hover{color:#fff;background:var(--text)}
+
+/* ── Hero ── */
+.page-hero{padding:80px 64px 72px;position:relative;overflow:visible;min-height:310px}
+.page-hero .blob{top:-180px;right:-160px}
+.hero-inner{position:relative;z-index:1}
+.hero-label{font-size:9px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:26px;animation:fadeIn .4s ease both}
+.page-hero h1{font-size:clamp(42px,7vw,108px);font-weight:900;line-height:1.08;
+  letter-spacing:-.01em;text-transform:uppercase;margin-bottom:22px;animation:fadeUp .5s ease .1s both;
+  word-spacing:.05em;color:var(--text)}
+.page-hero-desc{font-size:13px;line-height:1.8;color:var(--muted);max-width:560px;font-weight:400;
+  animation:fadeUp .5s ease .2s both}
+
+/* ── Sections ── */
+.viz-section{padding:0 64px 80px}
+.sec-hd{display:flex;align-items:center;gap:18px;margin-bottom:32px}
+.sec-num{font-size:clamp(18px,2vw,26px);font-weight:900;flex-shrink:0;line-height:1;
+  color:var(--bg);-webkit-text-stroke:1.6px var(--text);paint-order:stroke fill}
+.sec-t{font-size:clamp(11px,1.5vw,19px);font-weight:800;letter-spacing:.01em;text-transform:uppercase;line-height:1.1}
+.sec-line{flex:1;height:2px;background:linear-gradient(90deg,var(--f1),var(--f2),var(--f3));border-radius:2px;min-width:20px}
+
+.viz-wrapper{background:#fff;border-radius:10px;padding:28px 28px 22px;box-shadow:var(--shadow);position:relative;overflow:visible}
+.viz-wrapper::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;
+  background:linear-gradient(90deg,var(--f1),var(--f2),var(--f3));border-radius:10px 10px 0 0;z-index:1}
+.viz-title{font-size:clamp(11px,1.5vw,17px);font-weight:800;text-transform:uppercase;letter-spacing:.01em;margin-bottom:6px;width:100%;line-height:1.2}
+.viz-tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;width:100%}
+.viz-tag{font-size:7.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  padding:2px 8px;border-radius:3px;background:rgba(0,0,0,.06);color:var(--muted)}
+.viz-desc{font-size:12.5px;color:var(--muted);line-height:1.85;width:100%;margin-bottom:16px}
+.axis-notes{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.axis-note{font-size:9px;font-weight:500;color:var(--muted);font-style:italic;
+  padding:5px 10px;background:rgba(0,0,0,.04);border-radius:3px;display:inline-block}
+
+/* ── Légende géo ── */
+.legend-geo{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;align-items:center;width:100%}
+.lg-item{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:500;color:var(--text)}
+.lg-swatch{width:14px;height:14px;border-radius:3px;flex-shrink:0}
+
+/* ── Légende compacte pilules (DV4 & DV5) ── */
+.legend-compact{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;width:100%}
+.lc-item{position:relative;display:inline-flex;align-items:center;gap:5px;
+  padding:4px 10px 4px 6px;border-radius:4px;border:1px solid rgba(0,0,0,.1);
+  background:rgba(255,255,255,.9);font-size:8.5px;font-weight:500;color:var(--text);
+  transition:all .13s;white-space:nowrap}
+.lc-item:hover{background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.1);z-index:10}
+.lc-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+.lc-tooltip{position:absolute;bottom:calc(100% + 8px);left:0;
+  background:#0A0A0A;color:#fff;font-size:10px;font-weight:400;line-height:1.6;
+  padding:9px 13px;border-radius:6px;white-space:normal;width:270px;pointer-events:none;
+  opacity:0;transition:opacity .12s;z-index:300;font-family:var(--f)}
+.lc-item:hover .lc-tooltip{opacity:1}
+.lc-tooltip::after{content:'';position:absolute;top:100%;left:14px;
+  border:5px solid transparent;border-top-color:#0A0A0A}
+
+/* ── Instruction ── */
+.instr{display:inline-flex;align-items:center;gap:8px;margin-top:14px;
+  padding:6px 12px;background:rgba(237,242,73,.18);border-radius:4px;
+  border:1px solid rgba(237,242,73,.5)}
+.pulse{width:5px;height:5px;border-radius:50%;background:var(--text);flex-shrink:0;animation:pulse 1.8s ease infinite}
+.instr p{font-size:7px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text)}
+
+/* ── SVGs ── */
+#chart1-svg,#chart4-svg{width:100%;display:block;overflow:visible}
+.bar-group,.bar-row{transition:opacity .15s}
+#chart1-svg.has-hover .bar-group:not(.active){opacity:.15}
+#chart4-svg.has-hover .bar-row:not(.active){opacity:.15}
+
+/* ── Sous-légende chaînes ── */
+.ch-legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;padding-top:14px;
+  border-top:1px solid rgba(0,0,0,.07)}
+.ch-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:4px;
+  border:1px solid rgba(0,0,0,.11);background:rgba(255,255,255,.7);
+  font-size:9.5px;font-weight:500;color:var(--text);transition:all .14s}
+.ch-pill:hover{background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.1)}
+.ch-pill.pinned{box-shadow:0 2px 14px rgba(0,0,0,.15);border-color:var(--f1);background:#fff}
+.ch-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+
+/* ── Tooltip camembert (fenêtre info DV1) ── */
+#tt{position:fixed;z-index:4000;width:340px;max-width:92vw;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%) scale(.94);
+  background:#fff;border-radius:10px;
+  box-shadow:0 20px 60px rgba(0,0,0,.18),0 4px 16px rgba(0,0,0,.1);
+  border-top:4px solid var(--c6);
+  pointer-events:none;opacity:0;
+  transition:opacity .2s,transform .22s cubic-bezier(.34,1.56,.64,1);overflow:hidden}
+#tt.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+#tt.pin{pointer-events:auto;border-top-color:var(--f1)}
+/* fenêtre adaptée au contenu — pas en plein milieu quand elle est visible en survol */
+#tt:not(.pin){
+  position:fixed;
+  top:auto; left:auto;
+  transform:scale(.94);
+}
+#tt.on:not(.pin){transform:scale(1)}
+
+.tt-x{position:absolute;top:8px;right:10px;width:22px;height:22px;border-radius:50%;
+  background:rgba(0,0,0,.08);border:none;font-size:11px;font-weight:800;color:var(--text);
+  display:none;align-items:center;justify-content:center;transition:background .13s}
+.tt-x:hover{background:rgba(0,0,0,.16)}
+#tt.pin .tt-x{display:flex}
+.tt-tabs{display:flex;gap:4px;padding:8px 16px 0;flex-wrap:wrap}
+.tt-tab{font-size:7px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  padding:3px 9px;border-radius:3px;border:1px solid rgba(0,0,0,.13);
+  background:transparent;color:var(--muted);transition:all .12s;pointer-events:auto}
+.tt-tab.on,.tt-tab:hover{background:var(--text);color:#fff;border-color:var(--text)}
+.tt-hd{padding:12px 38px 10px 16px;border-bottom:1px solid rgba(0,0,0,.07)}
+.tt-ey{font-size:6.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:1px}
+.tt-name{font-size:22px;font-weight:900;text-transform:uppercase;letter-spacing:.01em;line-height:1}
+.tt-sub{font-size:10.5px;font-weight:700;color:var(--muted);margin-top:2px}
+.tt-badge{display:inline-flex;align-items:center;gap:4px;margin-top:4px;font-size:6.5px;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border-radius:3px}
+.tt-badge.pub{background:rgba(124,202,129,.15);color:#1a7a4a;border:1px solid rgba(124,202,129,.4)}
+.tt-badge.priv{background:rgba(41,119,158,.1);color:var(--c1);border:1px solid rgba(41,119,158,.3)}
+.tt-body{padding:12px 16px 14px;display:flex;gap:14px;align-items:center}
+#donut-svg{width:120px;height:120px;flex-shrink:0}
+.donut-leg{flex:1;display:flex;flex-direction:column;gap:5px}
+.dl-item{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted)}
+.dl-dot{width:7px;height:7px;border-radius:2px;flex-shrink:0}
+.dl-name{flex:1;font-weight:500}
+.dl-pct{font-size:9px;font-weight:700;color:var(--text)}
+
+/* ── Tooltip hover générique ── */
+#th{position:fixed;z-index:4001;max-width:300px;min-width:160px;
+  pointer-events:none;opacity:0;
+  background:#fff;border-radius:6px;padding:9px 12px;
+  box-shadow:0 8px 32px rgba(0,0,0,.13);
+  border-left:3px solid var(--f1);
+  transition:opacity .1s;font-size:11px;line-height:1.65;color:var(--muted)}
+#th.on{opacity:1}
+#th strong{display:block;font-size:9px;font-weight:800;color:var(--text);
+  margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em}
+
+/* ── Anneaux DV2/DV3 ── */
+.pie-layout{display:flex;gap:40px;align-items:flex-start;padding:8px 0 4px;width:100%}
+.pie-layout svg{flex-shrink:0}
+.pie-leg{display:flex;flex-direction:column;gap:0;flex:1;min-width:0}
+.pie-li{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(0,0,0,.06);font-size:12px;color:var(--muted);width:100%}
+.pie-li:last-child{border-bottom:none}
+.pie-dot{width:11px;height:11px;border-radius:3px;flex-shrink:0}
+.pie-name{flex:1;font-weight:400;color:var(--text);min-width:0}
+.pie-num{font-size:11px;font-weight:400;color:var(--muted);white-space:nowrap}
+.pie-pct{font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;min-width:34px;text-align:right}
+
+/* ── Conclusion stylisée ── */
+.ctx-sec{padding:0 64px 90px}
+.conclusion-inner{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;background:#fff;
+  border-radius:10px;box-shadow:var(--shadow);overflow:hidden;position:relative}
+.conclusion-inner::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;
+  background:linear-gradient(90deg,var(--f1),var(--f2),var(--f3));z-index:1}
+.conclusion-block{padding:36px 32px;border-right:1px solid rgba(0,0,0,.07);position:relative}
+.conclusion-block:last-child{border-right:none}
+.conclusion-block-num{font-size:52px;font-weight:900;line-height:1;margin-bottom:12px;
+  color:var(--bg);-webkit-text-stroke:1.5px rgba(0,0,0,.2);paint-order:stroke fill}
+.conclusion-block-title{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--text);margin-bottom:10px;margin-top:4px}
+.conclusion-block p{font-size:12.5px;line-height:1.85;color:var(--muted);font-weight:400}
+.conclusion-block-accent{display:inline-block;margin-bottom:8px;font-size:18px;font-weight:900;color:var(--text);line-height:1}
+
+/* ── Footer ── */
+footer{border-top:1px solid rgba(0,0,0,.07);padding:22px 64px;display:flex;align-items:center;justify-content:space-between}
+.f-logo{font-size:12px;font-weight:800;text-transform:uppercase;color:var(--muted);letter-spacing:.06em;text-decoration:none;transition:color .14s}
+.f-logo:hover{color:var(--text)}
+.f-meta{font-size:7.5px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);text-align:center}
+.f-links{display:flex;gap:12px;list-style:none}
+.f-links a{font-size:7.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);text-decoration:none;transition:color .14s}
+.f-links a:hover{color:var(--text)}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.5)}}
+
+/* ── RESPONSIVE ── */
+@media(pointer:coarse){#cur{display:none}}
+
+@media(max-width:480px){
+  nav{padding:0 12px;height:48px}
+  .nav-links{display:none}
+  .nav-burger{display:flex}
+  .page-hero{padding:36px 14px 44px;min-height:auto}
+  .page-hero .blob{width:220px;height:220px;top:-40px;right:-60px}
+  .viz-section,.ctx-sec{padding:0 14px 44px}
+  .sec-hd{gap:8px;margin-bottom:18px}
+  .viz-wrapper{padding:16px 13px 16px;border-radius:7px}
+  .viz-desc{font-size:11.5px}
+  .pie-layout{flex-direction:column;gap:16px;align-items:center}
+  .pie-layout svg{width:180px!important;height:180px!important}
+  .legend-compact{gap:4px}
+  .lc-item{font-size:8px;padding:3px 7px 3px 5px}
+  .lc-tooltip{width:200px;font-size:9px}
+  .conclusion-inner{grid-template-columns:1fr}
+  .conclusion-block{border-right:none;border-bottom:1px solid rgba(0,0,0,.07);padding:20px 16px}
+  .conclusion-block:last-child{border-bottom:none}
+  .conclusion-block-num{font-size:38px}
+  footer{flex-direction:column;gap:8px;text-align:center;padding:16px 14px}
+  .f-links{flex-wrap:wrap;justify-content:center;gap:8px}
+  #tt{width:94vw;max-width:320px}
+  .tt-name{font-size:18px}
+  #donut-svg{width:90px;height:90px}
+}
+
+@media(min-width:481px) and (max-width:768px){
+  nav{padding:0 16px;height:50px}
+  .nav-links{display:none}
+  .nav-burger{display:flex}
+  .page-hero{padding:52px 20px 52px;min-height:auto}
+  .page-hero .blob{width:300px;height:300px;top:-60px;right:-80px}
+  .viz-section,.ctx-sec{padding:0 20px 56px}
+  .sec-hd{gap:10px;margin-bottom:20px}
+  .viz-wrapper{padding:20px 18px 18px;border-radius:8px}
+  .pie-layout{flex-direction:column;gap:20px;align-items:center}
+  .pie-layout svg{width:200px!important;height:200px!important}
+  .lc-tooltip{width:220px}
+  .conclusion-inner{grid-template-columns:1fr}
+  .conclusion-block{border-right:none;border-bottom:1px solid rgba(0,0,0,.07);padding:24px 20px}
+  .conclusion-block:last-child{border-bottom:none}
+  footer{flex-direction:column;gap:9px;text-align:center;padding:18px 16px}
+  .f-links{flex-wrap:wrap;justify-content:center}
+  #tt{width:92vw;max-width:340px}
+}
+
+@media(min-width:769px) and (max-width:1024px){
+  nav{padding:0 28px}
+  .viz-section,.ctx-sec,.page-hero{padding-left:32px;padding-right:32px}
+  .pie-layout{gap:24px}
+  .pie-layout svg{width:180px!important;height:180px!important}
+  .conclusion-inner{grid-template-columns:1fr 1fr}
+  .conclusion-block:nth-child(2){border-right:none}
+  .conclusion-block:nth-child(3){border-top:1px solid rgba(0,0,0,.07);grid-column:span 2}
+}
+
+@media(min-width:1600px){
+  nav{padding:0 80px}
+  .viz-section,.ctx-sec,.page-hero{padding-left:80px;padding-right:80px}
+  .viz-wrapper{padding:36px 36px 28px}
+  .pie-layout svg{width:260px!important;height:260px!important}
+}
+
+/* ── Blocs split : graphique + texte sensibilisation ── */
+.viz-body{display:grid;gap:0;width:100%}
+/* DV2 & DV3 (anneaux) : 50/50 */
+.viz-body.split-half{grid-template-columns:1fr 1fr;gap:32px;align-items:start}
+/* DV1, DV4, DV5 (barres/timeline) : 2/3 + 1/3 */
+.viz-body.split-third{grid-template-columns:2fr 1fr;gap:32px;align-items:start}
+
+.viz-chart{min-width:0}
+.viz-edito{min-width:0;display:flex;flex-direction:column;gap:18px;padding-left:24px;
+  border-left:2px solid rgba(0,0,0,.07)}
+
+.edito-label{font-size:7px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--f1);margin-bottom:6px}
+.edito-hook{font-size:clamp(15px,1.8vw,22px);font-weight:900;line-height:1.2;color:var(--text);
+  text-transform:uppercase;letter-spacing:-.01em;margin-bottom:4px}
+.edito-hook span{color:var(--f1)}
+.edito-body{font-size:12.5px;line-height:1.85;color:var(--muted);font-weight:400}
+.edito-body strong{color:var(--text);font-weight:700}
+.edito-stat{display:flex;flex-direction:column;gap:2px;padding:14px 16px;
+  background:linear-gradient(135deg,rgba(41,119,158,.08),rgba(124,202,129,.06));
+  border-radius:8px;border-left:3px solid var(--f1)}
+.edito-stat-num{font-size:clamp(26px,3vw,38px);font-weight:900;line-height:1;color:var(--text)}
+.edito-stat-num span{color:var(--f1)}
+.edito-stat-label{font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.edito-cta{display:inline-flex;align-items:center;gap:6px;font-size:8px;font-weight:800;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--text);
+  padding:8px 14px;border-radius:5px;background:var(--f3);text-decoration:none;
+  transition:background .15s,transform .12s}
+.edito-cta:hover{background:#d4d900;transform:translateY(-1px)}
+
+/* ── Responsive splits ── */
+@media(max-width:900px){
+  .viz-body.split-half,.viz-body.split-third{grid-template-columns:1fr;gap:20px}
+  .viz-edito{padding-left:0;border-left:none;border-top:2px solid rgba(0,0,0,.07);padding-top:20px}
+}
+</style>
+</head>
+<body>
+
+<div id="cur"><svg viewBox="0 0 20 20" fill="none"><path id="cur-tri" d="M3 2 L3 14 L7 10.5 L9.5 16 L11 15.3 L8.5 9.8 L13 9.8 Z" fill="#0A0A0A" stroke="#0A0A0A" stroke-width="0" stroke-linejoin="round" stroke-linecap="round"/></svg></div>
+<div id="scrollLine"></div>
+
+<!-- Tooltip camembert -->
+<div id="tt">
+  <button class="tt-x" id="tt-x">✕</button>
+  <div class="tt-tabs" id="tt-tabs"></div>
+  <div class="tt-hd">
+    <p class="tt-ey" id="tt-ey"></p>
+    <p class="tt-name" id="tt-name"></p>
+    <p class="tt-sub" id="tt-sub"></p>
+    <span class="tt-badge" id="tt-badge"></span>
+  </div>
+  <div class="tt-body">
+    <svg id="donut-svg" viewBox="0 0 120 120"></svg>
+    <div class="donut-leg" id="donut-leg"></div>
+  </div>
+</div>
+
+<!-- Tooltip hover générique -->
+<div id="th"><strong id="th-title"></strong><span id="th-body"></span></div>
+
+<nav>
+  <a href="index.html" class="nav-logo">pra<strong>data</strong></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Accueil</a></li>
+    <li><a href="dataviz-medias.html" class="active">Livrable 1</a></li>
+    <li><a href="livrable2.html">Livrable 2</a></li>
+  </ul>
+  <button class="nav-burger" id="nav-burger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+<div class="nav-mobile" id="nav-mobile">
+  <a href="index.html">Accueil</a>
+  <a href="dataviz-medias.html" class="active">Livrable 1 — Mésinformation climatique</a>
+  <a href="livrable2.html">Livrable 2 — Stratégie d'influence</a>
+</div>
+
+<!-- HERO -->
+<section class="page-hero">
+  <div class="blob"></div>
+  <div class="hero-inner">
+    <p class="hero-label">Livrable 1 · IUT Bordeaux Montaigne · 2026</p>
+    <h1>CLIMAT &<br>MÉSINFORMATION</h1>
+    <p class="page-hero-desc">Analyse des occurrences de mésinformation climatique dans les médias audiovisuels français, de janvier à août 2025. Qui parle, sur quels sujets, et à quel rythme&nbsp;?</p>
+  </div>
+</section>
+
+<!-- DV1 -->
+<section class="viz-section" id="dv1">
+  <div class="sec-hd"><span class="sec-num">01</span><h2 class="sec-t">Qui relaie la mésinformation climatique&nbsp;?</h2><span class="sec-line"></span></div>
+  <div class="viz-wrapper">
+    <h2 class="viz-title">L'implication des groupes médiatiques dans la mésinformation climatique</h2>
+    <div class="viz-tags"><span class="viz-tag">Janvier–Août 2025</span><span class="viz-tag">10 chaînes</span><span class="viz-tag">6 groupes</span></div>
+    <div class="viz-body split-third">
+      <div class="viz-chart">
+        <p class="viz-desc">Cet histogramme empilé présente les cas de mésinformation relayés du 16 janvier au 31 août 2025 par groupe médiatique. Chaque couleur correspond à une chaîne appartenant à un même groupe. On observe que celui de Bolloré domine très largement, avec près de 200 cas relayés, contre moins de 50 pour les autres.</p>
+        <div class="legend-geo" id="lg1"></div>
+        <svg id="chart1-svg"></svg>
+        <div class="ch-legend" id="ch-leg"></div>
+        <div class="axis-notes"><span class="axis-note">↑ Axe vertical — nombre de cas recensés</span><span class="axis-note">→ Axe horizontal — groupes médiatiques · Cliquez sur une chaîne pour le détail</span></div>
+      </div>
+      <div class="viz-edito">
+        <p class="edito-label">Tu t'en doutais ?</p>
+        <p class="edito-hook">Sur CNews, ce sont les <span>journalistes eux-mêmes</span> les premiers responsables</p>
+        <p class="edito-body">Entre janvier et août 2025, le groupe Bolloré concentre à lui seul près de 200 cas de mésinformation climatique dans l'audiovisuel français, soit <strong>quatre fois plus que n'importe quel autre groupe</strong>. Et sur CNews, ce sont les journalistes eux-mêmes qui en sont les principaux responsables. Or un journaliste, c'est une figure d'autorité — on ne pense pas forcément à remettre sa parole en question.</p>
+        <p class="edito-body">Un extrait posté sur TikTok, repartagé par un ami, et on n'a plus aucune idée d'où ça vient. C'est exactement comme ça que la mésinformation <strong>prend de l'ampleur</strong>.</p>
+        <p class="edito-body">Donc quand tu tombes sur un contenu qui parle du climat, <strong>demande-toi d'où il vient.</strong></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DV2 -->
+<section class="viz-section" id="dv2">
+  <div class="sec-hd"><span class="sec-num">02</span><h2 class="sec-t">Sur quels sujets se concentre cette mésinformation&nbsp;?</h2><span class="sec-line"></span></div>
+  <div class="viz-wrapper">
+    <h2 class="viz-title">Les thèmes les plus utilisés dans la mésinformation climatique</h2>
+    <div class="viz-tags"><span class="viz-tag">Janvier–Août 2025</span><span class="viz-tag">6 thèmes</span><span class="viz-tag">586 cas</span></div>
+    <div class="viz-body split-half">
+      <div class="viz-chart">
+        <p class="viz-desc">Ce graphique en anneau illustre la répartition des principaux thèmes. La question énergétique occupe une place prépondérante avec 392 messages relayés.</p>
+        <div class="pie-layout">
+          <svg id="pie2-svg" viewBox="0 0 220 220" width="220" height="220"></svg>
+          <div class="pie-leg" id="pie2-leg"></div>
+        </div>
+        <div class="axis-notes"><span class="axis-note">↻ Anneau — répartition en % et en cas</span><span class="axis-note">↗ Survol des segments pour le détail</span></div>
+      </div>
+      <div class="viz-edito">
+        <p class="edito-label">Pourquoi l'énergie ?</p>
+        <p class="edito-hook">L'énergie : le <span>terrain favori</span> de la mésinformation</p>
+        <p class="edito-body">Sur 571 cas de mésinformation climatique détectés entre janvier et août 2025, <strong>392 concernent la question énergétique</strong>. C'est plus que tous les autres thèmes réunis — la mobilité, le rôle de la France, les sciences climatiques — et de loin.</p>
+        <p class="edito-body">Quand un contenu sur le climat circule sur les réseaux, il y a donc de fortes chances qu'il parle d'énergie, et plus précisément des <strong>énergies renouvelables</strong>. Ce n'est pas un hasard : c'est le sujet sur lequel il est le plus facile de créer de la méfiance, parce que c'est un sujet qui touche directement au quotidien — les factures, les pannes, le coût de la transition. Savoir que ce thème est de loin le plus ciblé par la mésinformation, c'est déjà un premier réflexe utile. Mais ce n'est pas pour autant une raison de baisser la garde sur le reste.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DV3 -->
+<section class="viz-section" id="dv3">
+  <div class="sec-hd"><span class="sec-num">03</span><h2 class="sec-t">L'énergie domine — mais quels discours exactement&nbsp;?</h2><span class="sec-line"></span></div>
+  <div class="viz-wrapper">
+    <h2 class="viz-title">Quels discours dominent la question énergétique</h2>
+    <div class="viz-tags"><span class="viz-tag">Janvier–Août 2025</span><span class="viz-tag">6 narratifs</span><span class="viz-tag">392 cas énergie</span></div>
+    <div class="viz-body split-half">
+      <div class="viz-chart">
+        <p class="viz-desc">Ce graphique en anneau montre la répartition des principaux narratifs. Le message dominant lie les ENR à une hausse des prix de l'électricité (125 messages).</p>
+        <div class="pie-layout">
+          <svg id="pie3-svg" viewBox="0 0 220 220" width="220" height="220"></svg>
+          <div class="pie-leg" id="pie3-leg"></div>
+        </div>
+        <div class="axis-notes"><span class="axis-note">↻ Anneau — répartition en % et en cas</span><span class="axis-note">↗ Survol des segments pour le détail</span></div>
+      </div>
+      <div class="viz-edito">
+        <p class="edito-label">Décryptage</p>
+        <p class="edito-hook"><span>Ces idées reçues</span> sur l'énergie, tu les as sûrement déjà entendues</p>
+        <p class="edito-body">Parmi tous les discours relevés sur la question énergétique, un seul concentre 125 cas : celui qui associe les énergies renouvelables à une <strong>hausse des prix de l'électricité</strong>. Ce n'est pas un hasard. Tout le monde paye une facture d'électricité — c'est donc le message le plus facile à faire passer, le plus susceptible de toucher tout le monde sans avoir besoin d'être argumenté.</p>
+        <p class="edito-body">Le problème, c'est qu'à force de l'entendre partout, on finit par ne plus le remettre en question. C'est exactement comme ça que fonctionne la mésinformation moderne : <strong>un message répété suffisamment finit par devenir une évidence</strong>, même s'il est faux. Alors quand tu tombes sur ce type d'affirmation, demande-toi qui a intérêt à la répéter autant, et depuis combien de temps.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DV4 -->
+<section class="viz-section" id="dv4">
+  <div class="sec-hd"><span class="sec-num">04</span><h2 class="sec-t">Ces discours — quelles chaînes les portent le plus&nbsp;?</h2><span class="sec-line"></span></div>
+  <div class="viz-wrapper">
+    <h2 class="viz-title">Quand les médias amplifient la mésinformation climatique sur la question de l'énergie</h2>
+    <div class="viz-tags"><span class="viz-tag">Janvier–Août 2025</span><span class="viz-tag">6 narratifs</span><span class="viz-tag">12 chaînes</span></div>
+    <div class="viz-body split-third">
+      <div class="viz-chart">
+        <p class="viz-desc">Ce diagramme montre quelles chaînes relaient quels messages autour de l'énergie. CNews domine très largement avec 149 messages, dont 62 sur le prix de l'électricité.</p>
+        <div class="legend-geo" id="lg4-pub"></div>
+        <div class="legend-compact" id="lg4"></div>
+        <svg id="chart4-svg"></svg>
+        <div class="axis-notes"><span class="axis-note">↑ Axe vertical — chaînes, triées par volume décroissant</span><span class="axis-note">→ Axe horizontal — nombre de cas (proportionnel au maximum)</span></div>
+      </div>
+      <div class="viz-edito">
+        <p class="edito-label">Comment se protéger ?</p>
+        <p class="edito-hook">Même les <span>chaînes publiques</span> ne sont pas épargnées</p>
+        <p class="edito-body">Ce qui est frappant dans cette visualisation, c'est pas juste le volume de mésinformation diffusé par les chaînes du groupe Bolloré, c'est aussi la <strong>cohérence de leurs messages</strong>. CNews et Europe 1 utilisent pratiquement les mêmes proportions : environ 40% de leurs messages de mésinformation énergétique portent sur la hausse des prix de l'électricité, suivis des mêmes narratifs secondaires dans des proportions similaires. Les autres chaînes, elles, n'ont pas ce même schéma répétitif — leurs messages sont plus dispersés, moins coordonnés.</p>
+        <p class="edito-body">Ce n'est pas anodin. La mésinformation moderne repose moins sur l'invention de nouvelles fausses informations que sur la <strong>répétition des mêmes</strong>, jusqu'à ce qu'elles finissent par paraître évidentes. Quand tu entends le même message sur plusieurs chaînes, dans les mêmes proportions, ça vaut le coup de se demander pourquoi, et si c'est vraiment une coïncidence.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DV5 / Timeline -->
+<section class="viz-section" id="dv5">
+  <div class="sec-hd"><span class="sec-num">05</span><h2 class="sec-t">Ces discours s'intensifient — à quel moment&nbsp;?</h2><span class="sec-line"></span></div>
+  <div class="viz-wrapper">
+    <h2 class="viz-title">L'été 2025, une période propice aux mésinformations énergétiques</h2>
+    <div class="viz-tags"><span class="viz-tag">Janvier–Août 2025</span><span class="viz-tag">6 narratifs</span><span class="viz-tag">8 mois</span></div>
+    <div class="viz-body split-third">
+      <div class="viz-chart">
+        <p class="viz-desc">Cette chronologie montre les moments de pic. Juin et juillet 2025 se distinguent par une forte activité, notamment sur le narratif "prix de l'électricité" (44 cas en juin seul).</p>
+        <div class="legend-compact" id="lg5"></div>
+        <svg id="chart5-svg" style="width:100%;display:block;overflow:visible"></svg>
+        <div class="axis-notes"><span class="axis-note">↑ Axe vertical — nombre de cas par mois</span><span class="axis-note">→ Axe horizontal — mois de janvier à août 2025</span></div>
+      </div>
+      <div class="viz-edito">
+        <p class="edito-label">Pourquoi l'été ?</p>
+        <p class="edito-hook">Les pics de chaleur, <span>terreau idéal</span> de la mésinformation</p>
+        <p class="edito-body">De janvier à mai, les cas restent stables. En juin et juillet, ils explosent — <strong>133 puis 139 cas relevés</strong>. Ce n'est pas un hasard : c'est exactement quand les débats sur la PPE, la première canicule et le vote sur les ZFE ont mis l'énergie au centre de l'actualité.</p>
+        <p class="edito-body">La mésinformation ne circule pas au hasard. Elle s'intensifie quand des décisions importantes sont sur la table. Donc quand un sujet fait soudainement beaucoup parler, demande-toi <strong>pourquoi maintenant, et qui a intérêt à en parler.</strong></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Conclusion -->
+<section class="ctx-sec" id="conclusion">
+  <div class="sec-hd"><span class="sec-num">06</span><h2 class="sec-t">Ce que ces données nous disent</h2><span class="sec-line"></span></div>
+  <div class="conclusion-inner">
+    <div class="conclusion-block">
+      <div class="conclusion-block-num">01</div>
+      <div class="conclusion-block-accent">Bolloré au centre</div>
+      <div class="conclusion-block-title">Un groupe, une domination</div>
+      <p>De janvier à août 2025, la majorité des cas de mésinformation climatique provient du groupe Bolloré. CNews concentre l'essentiel de cette activité, avec près de 150 messages diffusés sur la période — bien au-delà de toute autre chaîne.</p>
+    </div>
+    <div class="conclusion-block">
+      <div class="conclusion-block-num">02</div>
+      <div class="conclusion-block-accent">Des journalistes</div>
+      <div class="conclusion-block-title">Pas seulement des invités</div>
+      <p>Les journalistes du groupe apparaissent comme les principaux acteurs de cette diffusion, contrairement aux autres chaînes où la mésinformation émane davantage de chroniqueurs ou d'invités. Ce constat interroge la responsabilité journalistique au sein du groupe.</p>
+    </div>
+    <div class="conclusion-block">
+      <div class="conclusion-block-num">03</div>
+      <div class="conclusion-block-accent">L'énergie en été</div>
+      <div class="conclusion-block-title">Un pic estival révélateur</div>
+      <p>La question énergétique s'impose comme le sujet central. Le message liant les ENR à une hausse des prix revient de manière récurrente. Ces discours connaissent une intensification notable en juin–juillet 2025, période de fort débat sur le marché électrique européen.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <a href="index.html" class="f-logo">pra<strong>data</strong></a>
+  <p class="f-meta">IUT Bordeaux Montaigne · Challenge de la Data 2026</p>
+  <ul class="f-links">
+    <li><a href="index.html">Accueil</a></li>
+    <li><a href="dataviz-medias.html">Livrable 1</a></li>
+    <li><a href="livrable2.html">Livrable 2</a></li>
+  </ul>
+</footer>
+
+<script>
+// ════════ DONNÉES ════════
+// Palette dataviz principale (narratifs énergie + barres)
+const C = ['#29779E','#67B7AF','#7CCA81','#B1F573','#EDF249','#D0D540'];
+// Palette thèmes (nuances de vert)
+const CT = ['#69AC6E','#7CCA81','#9DD865','#B1F573','#D0D540','#DBE27E'];
+
+const GROUPS = [
+  {label:'Bolloré',           key:'bol', pub:false, color:C[0], channels:[
+    {name:'CNews',     value:142, color:'#1a5a8a'},
+    {name:'Europe 1',  value:55,  color:'#29779E'}]},
+  {label:'Groupe TF1',        key:'tf1', pub:false, color:C[1], channels:[
+    {name:'LCI',       value:46,  color:'#4a9990'},
+    {name:'TF1',       value:1,   color:'#67B7AF'}]},
+  {label:'France Télévisions',key:'ftv', pub:true,  color:C[2], channels:[
+    {name:'France Info',     value:39, color:'#4dbb6a'},
+    {name:'France 2',        value:2,  color:'#7CCA81'},
+    {name:'France 3 - IDF',  value:1,  color:'#adf5bb'}]},
+  {label:'CMA CGM',           key:'cma', pub:false, color:C[3], channels:[
+    {name:'BFM TV',    value:26,  color:'#B1F573'}]},
+  {label:'France Média Monde',key:'fmm', pub:true,  color:C[4], channels:[
+    {name:'France 24', value:8,   color:'#EDF249'}]},
+  {label:'Arte France',       key:'art', pub:true,  color:C[5], channels:[
+    {name:'Arte',      value:4,   color:'#D0D540'}]},
+];
+
+const LOC_C = ['#1a5a8a','#29779E','#67B7AF','#7CCA81','#EDF249'];
+const CH = {
+  'CNews':         {group:'Bolloré',           pub:false, loc:[{l:'Journalistes',v:69},{l:'Invités',v:53},{l:'Chroniqueurs',v:40},{l:'Invités politiques',v:27},{l:'Audience',v:1}]},
+  'Europe 1':      {group:'Bolloré',           pub:false, loc:[{l:'Journalistes',v:32},{l:'Invités',v:24},{l:'Invités politiques',v:11},{l:'Chroniqueurs',v:6}]},
+  'LCI':           {group:'Groupe TF1',        pub:false, loc:[{l:'Chroniqueurs',v:32},{l:'Invités politiques',v:23},{l:'Invités',v:6},{l:'Journalistes',v:5}]},
+  'TF1':           {group:'Groupe TF1',        pub:false, loc:[{l:'Journalistes',v:1},{l:'Invités politiques',v:1}]},
+  'France Info':   {group:'France Télévisions',pub:true,  loc:[{l:'Invités politiques',v:31},{l:'Invités',v:22},{l:'Chroniqueurs',v:5},{l:'Journalistes',v:4}]},
+  'France 2':      {group:'France Télévisions',pub:true,  loc:[{l:'Invités',v:2},{l:'Journalistes',v:1}]},
+  'France 3 - IDF':{group:'France Télévisions',pub:true,  loc:[{l:'Invités politiques',v:1}]},
+  'BFM TV':        {group:'CMA CGM',           pub:false, loc:[{l:'Invités politiques',v:20},{l:'Invités',v:14},{l:'Chroniqueurs',v:8},{l:'Journalistes',v:4}]},
+  'France 24':     {group:'France Média Monde',pub:true,  loc:[{l:'Invités',v:7},{l:'Invités politiques',v:4}]},
+  'Arte':          {group:'Arte France',       pub:true,  loc:[{l:'Invités',v:3},{l:'Invités politiques',v:1}]},
+};
+Object.values(CH).forEach(d=>d.loc.forEach((l,i)=>{l.c=LOC_C[Math.min(i,LOC_C.length-1)];}));
+
+const THEMES = [
+  {name:'Énergie',              val:392},
+  {name:'Mobilité',             val:55},
+  {name:'Rôle de la France',    val:48},
+  {name:'Sciences climatiques', val:46},
+  {name:'Général',              val:30},
+  {name:'Adaptation climatique',val:15},
+].sort((a,b)=>b.val-a.val);
+
+const NARRATIFS = [
+  {full:"Les énergies renouvelables variables font exploser le prix de l'électricité", val:125},
+  {full:"Le soutien de l'État aux énergies renouvelables est gigantesque (dizaines voire centaines de milliards d'euros)", val:71},
+  {full:"Les énergies renouvelables sont inefficaces ou inutiles en raison de leur intermittence", val:71},
+  {full:"Les énergies renouvelables variables provoquent des blackouts et compromettent la sécurité d'approvisionnement électrique", val:44},
+  {full:"En France, la production nucléaire suffit à répondre aux besoins — le mix électrique est déjà décarboné", val:42},
+  {full:"Le bilan environnemental des éoliennes est négatif pour la biodiversité et la santé humaine", val:39},
+];
+
+const CHAINS = [
+  {name:'CNews',       pub:false, vals:[62,27,22,11,8,19]},
+  {name:'Europe 1',   pub:false, vals:[22,16,7,6,5,4]},
+  {name:'LCI',        pub:false, vals:[8,7,9,5,5,1]},
+  {name:'RMC',        pub:false, vals:[7,4,4,0,7,4]},
+  {name:'France Info',pub:true,  vals:[6,3,8,7,3,2]},
+  {name:'BFM TV',     pub:false, vals:[5,3,1,2,4,0]},
+  {name:'France 24',  pub:true,  vals:[0,0,0,7,0,0]},
+  {name:'France Culture',pub:true, vals:[0,0,0,1,0,0]},
+  {name:'France 2',   pub:true,  vals:[0,0,0,0,2,0]},
+  {name:'France Inter',pub:true, vals:[0,0,0,0,1,0]},
+  {name:'RTL',        pub:false, vals:[0,0,2,0,0,0]},
+  {name:'TF1',        pub:false, vals:[0,1,0,0,0,0]},
+].sort((a,b)=>b.vals.reduce((s,v)=>s+v,0)-a.vals.reduce((s,v)=>s+v,0));
+
+const MONTHS = ['Janv','Févr','Mars','Avr','Mai','Juin','Juil','Août'];
+const TIMELINE = [
+  [3,1,4,0,3,0],[1,0,0,1,3,0],[3,7,3,0,1,1],[6,4,4,3,5,1],
+  [6,7,0,8,0,0],[44,22,22,6,12,10],[42,2,15,16,8,18],[5,0,5,5,3,0],
+];
+
+// ════════ HELPERS ════════
+const NS='http://www.w3.org/2000/svg';
+function mk(tag,a){const e=document.createElementNS(NS,tag);Object.entries(a).forEach(([k,v])=>e.setAttribute(k,v));return e;}
+function xy(cx,cy,r,a){return[cx+r*Math.cos(a),cy+r*Math.sin(a)];}
+
+// ════════ TOOLTIP HOVER GÉNÉRIQUE ════════
+const thEl=document.getElementById('th');
+function showTH(e,title,body,col){
+  document.getElementById('th-title').textContent=title;
+  document.getElementById('th-body').textContent=body;
+  thEl.style.borderLeftColor=col||'#29779E';
+  moveTH(e); thEl.classList.add('on');
+}
+function hideTH(){thEl.classList.remove('on');}
+function moveTH(e){
+  let x=e.clientX+14,y=e.clientY-16;
+  if(x+320>window.innerWidth) x=e.clientX-330;
+  if(y+100>window.innerHeight) y=e.clientY-110;
+  thEl.style.left=x+'px'; thEl.style.top=y+'px';
+}
+
+// ════════ LÉGENDE DV1 ════════
+function buildLg1(){
+  const el=document.getElementById('lg1');
+  GROUPS.forEach(g=>{
+    const d=document.createElement('div'); d.className='lg-item';
+    const sw=document.createElement('div'); sw.className='lg-swatch';
+    if(g.pub){sw.style.background='transparent';sw.style.border=`2.5px solid ${g.color}`;}
+    else sw.style.background=g.color;
+    d.appendChild(sw);
+    d.appendChild(Object.assign(document.createElement('span'),{textContent:g.label}));
+    el.appendChild(d);
+  });
+  const sep=document.createElement('div');
+  sep.style.cssText='width:1px;height:16px;background:rgba(0,0,0,.13);margin:0 4px';
+  el.appendChild(sep);
+  [{t:'Média privé',pub:false},{t:'Média public',pub:true}].forEach(({t,pub})=>{
+    const d=document.createElement('div'); d.className='lg-item';
+    const sw=document.createElement('div'); sw.className='lg-swatch';
+    if(pub){sw.style.background='transparent';sw.style.border='2.5px solid #888';}
+    else sw.style.background='#555';
+    d.appendChild(sw);
+    d.appendChild(Object.assign(document.createElement('span'),{textContent:t,style:'color:var(--muted)'}));
+    el.appendChild(d);
+  });
+}
+
+// ════════ DV1 — Barres empilées ════════
+const svg1=document.getElementById('chart1-svg');
+const P1={top:26,right:14,bottom:62,left:42};
+const CH1=330;
+let pinnedCh=null;
+
+function buildChart1(){
+  svg1.innerHTML='';
+  const W=svg1.parentElement.clientWidth;
+  svg1.setAttribute('viewBox',`0 0 ${W} ${CH1+P1.top+P1.bottom}`);
+  svg1.style.height=(CH1+P1.top+P1.bottom)+'px';
+  const cW=W-P1.left-P1.right;
+  const n=GROUPS.length,G=Math.max(6,Math.floor(cW*0.025));
+  const bW=(cW-G*(n-1))/n;
+  const maxV=Math.max(...GROUPS.map(g=>g.channels.reduce((s,c)=>s+c.value,0)));
+  const fac=CH1/maxV;
+
+  [0,50,100,150,200].forEach(v=>{
+    const gy=P1.top+CH1-v*fac;
+    if(gy<P1.top-2) return;
+    svg1.appendChild(mk('line',{x1:P1.left,y1:gy,x2:P1.left+cW,y2:gy,stroke:'rgba(0,0,0,.07)','stroke-width':'1','stroke-dasharray':'4 5'}));
+    const t=mk('text',{x:P1.left-6,y:gy+4,'text-anchor':'end',fill:'rgba(0,0,0,.26)','font-size':'8.5','font-family':'Poppins','font-weight':'600'});
+    t.textContent=v; svg1.appendChild(t);
+  });
+
+  GROUPS.forEach((g,gi)=>{
+    const x=P1.left+gi*(bW+G);
+    const total=g.channels.reduce((s,c)=>s+c.value,0);
+    const gEl=mk('g',{class:'bar-group'}); svg1.appendChild(gEl);
+    let sH=0,hits=[];
+
+    [...g.channels].reverse().forEach((ch,ri)=>{
+      const ci=g.channels.length-1-ri;
+      if(ch.value<1) return;
+      const bH=ch.value*fac;
+      const bY=P1.top+CH1-sH-bH;
+      const isTop=ci===0;
+      const r=isTop?Math.min(5,bW/4):0;
+      const pd=isTop
+        ?`M${x+r},${bY} L${x+bW-r},${bY} Q${x+bW},${bY} ${x+bW},${bY+r} L${x+bW},${bY+bH} L${x},${bY+bH} L${x},${bY+r} Q${x},${bY} ${x+r},${bY} Z`
+        :`M${x},${bY} H${x+bW} V${bY+bH} H${x} Z`;
+      if(g.pub) gEl.appendChild(mk('path',{d:pd,fill:'rgba(255,255,255,.04)',stroke:ch.color,'stroke-width':'2.5','stroke-linejoin':'round'}));
+      else gEl.appendChild(mk('path',{d:pd,fill:ch.color}));
+      if(ci<g.channels.length-1)
+        gEl.appendChild(mk('line',{x1:x,y1:bY+bH,x2:x+bW,y2:bY+bH,stroke:'rgba(255,255,255,.35)','stroke-width':'1.5'}));
+      hits.push({chName:ch.name,y:bY,h:bH});
+      sH+=bH;
+    });
+
+    // Total
+    const tot=mk('text',{x:x+bW/2,y:P1.top+CH1-sH-6,'text-anchor':'middle',fill:'rgba(0,0,0,.42)','font-size':'8.5','font-family':'Poppins','font-weight':'800'});
+    tot.textContent=total; gEl.appendChild(tot);
+
+    // Label groupe — sans soulignage, mais cliquable
+    const ws=g.label.split(' '),h=Math.ceil(ws.length/2);
+    [ws.slice(0,h).join(' '),ws.slice(h).join(' ')].filter(Boolean).forEach((ln,li)=>{
+      const lt=mk('text',{x:x+bW/2,y:P1.top+CH1+14+li*12,'text-anchor':'middle',
+        fill:'rgba(0,0,0,.55)','font-size':'7.5','font-family':'Poppins','font-weight':'700',
+        style:'cursor:pointer'});
+      lt.textContent=ln;
+      lt.addEventListener('click',()=>{
+        const firstCh=g.channels[0];
+        if(pinnedCh===firstCh.name){resetDV1();return;}
+        pinnedCh=firstCh.name;
+        document.querySelectorAll('.ch-pill').forEach(p=>p.classList.remove('pinned'));
+        document.querySelector(`.ch-pill[data-ch="${firstCh.name}"]`)?.classList.add('pinned');
+        svg1.classList.add('has-hover');
+        document.querySelectorAll('.bar-group').forEach((bg,bgi)=>{
+          if(bgi===gi) bg.classList.add('active'); else bg.classList.remove('active');
+        });
+        showTT(firstCh.name,g,true);
+      });
+      // Survol groupe → affiche tooltip sans pinning
+      lt.addEventListener('mouseenter',e=>{
+        if(pinnedCh) return;
+        svg1.classList.add('has-hover');
+        document.querySelectorAll('.bar-group').forEach((bg,bgi)=>{
+          if(bgi===gi) bg.classList.add('active'); else bg.classList.remove('active');
+        });
+        showTT(g.channels[0].name,g,false);
+      });
+      lt.addEventListener('mouseleave',()=>{
+        if(pinnedCh) return;
+        svg1.classList.remove('has-hover');
+        document.querySelectorAll('.bar-group').forEach(bg=>bg.classList.remove('active'));
+        closeTT();
+      });
+      gEl.appendChild(lt);
+    });
+
+    // Hit zones par segment
+    hits.forEach(({chName,y,h})=>{
+      const hit=mk('rect',{x,y,width:bW,height:h,fill:'transparent'});
+      hit.addEventListener('mouseenter',()=>{
+        if(pinnedCh) return;
+        svg1.classList.add('has-hover');
+        document.querySelectorAll('.bar-group').forEach(g2=>g2.classList.remove('active'));
+        gEl.classList.add('active');
+        showTT(chName,g,false);
+      });
+      hit.addEventListener('mouseleave',e=>{
+        if(pinnedCh) return;
+        if(e.relatedTarget&&gEl.contains(e.relatedTarget)) return;
+        svg1.classList.remove('has-hover');
+        gEl.classList.remove('active');
+        closeTT();
+      });
+      gEl.appendChild(hit);
+    });
+  });
+}
+
+// ════════ SOUS-LÉGENDE CHAÎNES ════════
+function buildChLeg(){
+  const el=document.getElementById('ch-leg'); el.innerHTML='';
+  GROUPS.forEach(g=>{
+    g.channels.forEach(ch=>{
+      const pill=document.createElement('div'); pill.className='ch-pill'; pill.dataset.ch=ch.name;
+      const dot=document.createElement('div'); dot.className='ch-dot';
+      if(g.pub){dot.style.background='transparent';dot.style.border=`2px solid ${ch.color}`;}
+      else dot.style.background=ch.color;
+      pill.appendChild(dot);
+      pill.appendChild(Object.assign(document.createElement('span'),{textContent:ch.name}));
+      pill.addEventListener('click',()=>{
+        if(pinnedCh===ch.name){resetDV1();return;}
+        pinnedCh=ch.name;
+        document.querySelectorAll('.ch-pill').forEach(p=>p.classList.remove('pinned'));
+        pill.classList.add('pinned');
+        svg1.classList.add('has-hover');
+        GROUPS.forEach((grp,gi)=>{
+          if(grp.channels.some(c=>c.name===ch.name)){
+            document.querySelectorAll('.bar-group')[gi]?.classList.add('active');
+          } else {
+            document.querySelectorAll('.bar-group')[gi]?.classList.remove('active');
+          }
+        });
+        showTT(ch.name,g,true);
+      });
+      // Survol pilule → affiche sans pinning
+      pill.addEventListener('mouseenter',()=>{
+        if(pinnedCh) return;
+        showTT(ch.name,g,false);
+      });
+      pill.addEventListener('mouseleave',()=>{
+        if(pinnedCh) return;
+        closeTT();
+      });
+      el.appendChild(pill);
+    });
+  });
+}
+
+// ════════ TOOLTIP CAMEMBERT — position adaptée ════════
+const ttEl=document.getElementById('tt');
+let ttHoverTimeout=null;
+
+document.getElementById('tt-x').addEventListener('click',()=>resetDV1());
+
+function showTT(chName,group,pin){
+  const d=CH[chName]; if(!d) return;
+  clearTimeout(ttHoverTimeout);
+  const tabsEl=document.getElementById('tt-tabs'); tabsEl.innerHTML='';
+  if(group.channels.length>1){
+    group.channels.forEach(ch=>{
+      const btn=document.createElement('button');
+      btn.className='tt-tab'+(ch.name===chName?' on':'');
+      btn.textContent=ch.name;
+      btn.addEventListener('click',()=>showTT(ch.name,group,true));
+      tabsEl.appendChild(btn);
+    });
+    tabsEl.style.display='flex';
+  } else tabsEl.style.display='none';
+
+  const locs=d.loc.filter(x=>x.v>0);
+  const total=locs.reduce((s,x)=>s+x.v,0);
+  document.getElementById('tt-ey').textContent=d.group;
+  document.getElementById('tt-name').textContent=chName.toUpperCase();
+  document.getElementById('tt-sub').textContent=total+' cas recensés';
+  const badge=document.getElementById('tt-badge');
+  badge.textContent=d.pub?'◻ Média public':'◼ Média privé';
+  badge.className='tt-badge '+(d.pub?'pub':'priv');
+  drawDonut(locs,total);
+
+  ttEl.classList.remove('pin');
+  ttEl.classList.add('on');
+  if(pin){
+    ttEl.classList.add('pin');
+    // Position fixe au centre pour la fenêtre pinnée
+    ttEl.style.top='50%'; ttEl.style.left='50%';
+    ttEl.style.transform='translate(-50%,-50%) scale(1)';
+  } else {
+    // Position intelligente : coin bas-droite du chart, pas au centre
+    const rect=svg1.getBoundingClientRect();
+    const ttW=340,ttH=260;
+    let lx=rect.right-ttW-10;
+    let ly=rect.top+10;
+    if(lx<10) lx=10;
+    if(ly+ttH>window.innerHeight) ly=window.innerHeight-ttH-10;
+    ttEl.style.top=ly+'px'; ttEl.style.left=lx+'px';
+    ttEl.style.transform='scale(1)';
+  }
+}
+function closeTT(){
+  if(pinnedCh) return;
+  ttEl.classList.remove('on','pin');
+}
+function closeTTForced(){ttEl.classList.remove('on','pin');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape') resetDV1();});
+
+function drawDonut(locs,total){
+  const svg=document.getElementById('donut-svg'); svg.innerHTML='';
+  const cx=60,cy=60,ro=54,ri=20;
+  let a=-Math.PI/2;
+  locs.forEach(d=>{
+    const sw=(d.v/total)*Math.PI*2;
+    const[x1,y1]=xy(cx,cy,ro,a),[x2,y2]=xy(cx,cy,ro,a+sw);
+    const[x3,y3]=xy(cx,cy,ri,a+sw),[x4,y4]=xy(cx,cy,ri,a);
+    const lg=sw>Math.PI?1:0;
+    svg.appendChild(mk('path',{d:`M${x1},${y1} A${ro},${ro} 0 ${lg} 1 ${x2},${y2} L${x3},${y3} A${ri},${ri} 0 ${lg} 0 ${x4},${y4} Z`,fill:d.c,stroke:'#fff','stroke-width':'2'}));
+    if(sw>=0.32){
+      const mid=a+sw/2,[lx,ly]=xy(cx,cy,(ro+ri)/2,mid);
+      const t=mk('text',{x:lx,y:ly+4,'text-anchor':'middle',fill:'rgba(255,255,255,.95)','font-size':'10','font-family':'Poppins','font-weight':'700'});
+      t.textContent=d.v; svg.appendChild(t);
+    }
+    a+=sw;
+  });
+  svg.appendChild(mk('circle',{cx,cy,r:ri,fill:'#fff'}));
+  const tc=mk('text',{x:cx,y:cy+6,'text-anchor':'middle',fill:'#0A0A0A','font-size':'17','font-family':'Poppins','font-weight':'900'});
+  tc.textContent=total; svg.appendChild(tc);
+  const leg=document.getElementById('donut-leg'); leg.innerHTML='';
+  locs.forEach(d=>{
+    const pct=Math.round(d.v/total*100);
+    const item=document.createElement('div'); item.className='dl-item';
+    item.innerHTML=`<span class="dl-dot" style="background:${d.c}"></span><span class="dl-name">${d.l}</span><span class="dl-pct">${pct}%</span>`;
+    leg.appendChild(item);
+  });
+}
+
+// ════════ ANNEAU GÉNÉRIQUE (DV2 thèmes + DV3 narratifs) ════════
+function drawPie(svgId,legId,data,total,palette){
+  const pal=palette||C;
+  const svg=document.getElementById(svgId); svg.innerHTML='';
+  const cx=110,cy=110,ro=100,ri=52;
+  let a=-Math.PI/2;
+  data.forEach((d,i)=>{
+    const sw=(d.val/total)*Math.PI*2;
+    const[x1,y1]=xy(cx,cy,ro,a),[x2,y2]=xy(cx,cy,ro,a+sw);
+    const[x3,y3]=xy(cx,cy,ri,a+sw),[x4,y4]=xy(cx,cy,ri,a);
+    const lg=sw>Math.PI?1:0;
+    const col=pal[i%pal.length];
+    const path=mk('path',{
+      d:`M${x1},${y1} A${ro},${ro} 0 ${lg} 1 ${x2},${y2} L${x3},${y3} A${ri},${ri} 0 ${lg} 0 ${x4},${y4} Z`,
+      fill:col,stroke:'#fff','stroke-width':'2.5'
+    });
+    const fullName=d.full||d.name;
+    path.addEventListener('mouseenter',e=>showTH(e,`${Math.round(d.val/total*100)} % — ${d.val} cas`,fullName,col));
+    path.addEventListener('mousemove',e=>moveTH(e));
+    path.addEventListener('mouseleave',hideTH);
+    svg.appendChild(path);
+    if(sw>=0.28){
+      const mid=a+sw/2,[lx,ly]=xy(cx,cy,(ro+ri)/2,mid);
+      const t=mk('text',{x:lx,y:ly+4,'text-anchor':'middle',fill:'rgba(255,255,255,.9)','font-size':'11','font-family':'Poppins','font-weight':'700','pointer-events':'none'});
+      t.textContent=d.val; svg.appendChild(t);
+    }
+    a+=sw;
+  });
+  svg.appendChild(mk('circle',{cx,cy,r:ri,fill:'#fff'}));
+  const tc=mk('text',{x:cx,y:cy+2,'text-anchor':'middle',fill:'#0A0A0A','font-size':'22','font-family':'Poppins','font-weight':'900','pointer-events':'none'});
+  tc.textContent=total; svg.appendChild(tc);
+  const ts=mk('text',{x:cx,y:cy+16,'text-anchor':'middle',fill:'rgba(0,0,0,.3)','font-size':'6','font-family':'Poppins','font-weight':'700','letter-spacing':'1','pointer-events':'none'});
+  ts.textContent='CAS'; svg.appendChild(ts);
+  // Légende sans tooltip (info déjà visible)
+  const leg=document.getElementById(legId); leg.innerHTML='';
+  data.forEach((d,i)=>{
+    const col=pal[i%pal.length];
+    const pct=Math.round(d.val/total*100);
+    const fullName=d.full||d.name;
+    const item=document.createElement('div'); item.className='pie-li';
+    item.innerHTML=`<span class="pie-dot" style="background:${col}"></span><span class="pie-name">${fullName}</span><span class="pie-num">${d.val} cas</span><span class="pie-pct">${pct} %</span>`;
+    leg.appendChild(item);
+  });
+}
+
+// ════════ DV4 — Légende pub/priv + compacte narratifs ════════
+function buildLg4(){
+  // Légende pub/priv
+  const pubEl=document.getElementById('lg4-pub');
+  [{t:'Chaîne privée',pub:false},{t:'Chaîne publique',pub:true}].forEach(({t,pub})=>{
+    const d=document.createElement('div'); d.className='lg-item';
+    const sw=document.createElement('div'); sw.className='lg-swatch';
+    if(pub){sw.style.background='transparent';sw.style.border='2.5px solid #888';}
+    else sw.style.background='#555';
+    d.appendChild(sw);
+    d.appendChild(Object.assign(document.createElement('span'),{textContent:t,style:'color:var(--muted)'}));
+    pubEl.appendChild(d);
+  });
+  // Légende compacte narratifs
+  const el=document.getElementById('lg4'); el.innerHTML='';
+  NARRATIFS.forEach((n,i)=>{
+    const col=C[i];
+    const words=n.full.split(' ');
+    const short=words.slice(0,3).join(' ')+(words.length>3?'…':'');
+    const item=document.createElement('div'); item.className='lc-item';
+    const dot=document.createElement('span'); dot.className='lc-dot'; dot.style.background=col;
+    const lbl=document.createElement('span'); lbl.textContent=short;
+    const tt=document.createElement('span'); tt.className='lc-tooltip';
+    tt.innerHTML=`<span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${col};margin-right:6px;vertical-align:middle"></span>${n.full}`;
+    item.appendChild(dot); item.appendChild(lbl); item.appendChild(tt);
+    el.appendChild(item);
+  });
+}
+
+const svg4=document.getElementById('chart4-svg');
+const P4={top:12,right:50,bottom:18,left:110};
+const RH=26,RG=7;
+
+function buildChart4(){
+  svg4.innerHTML='';
+  const W=svg4.parentElement.clientWidth;
+  const cHt=CHAINS.length*(RH+RG)-RG;
+  const totH=cHt+P4.top+P4.bottom;
+  svg4.setAttribute('viewBox',`0 0 ${W} ${totH}`);
+  svg4.style.height=totH+'px';
+  const cW=W-P4.left-P4.right;
+  const maxT=Math.max(...CHAINS.map(c=>c.vals.reduce((s,v)=>s+v,0)));
+
+  CHAINS.forEach((ch,ci)=>{
+    const y=P4.top+ci*(RH+RG);
+    const total=ch.vals.reduce((s,v)=>s+v,0);
+    const rowEl=mk('g',{class:'bar-row'}); svg4.appendChild(rowEl);
+    rowEl.appendChild(mk('rect',{x:P4.left,y,width:cW,height:RH,fill:'rgba(0,0,0,.04)',rx:'3'}));
+
+    const lbl=mk('text',{x:P4.left-7,y:y+RH/2+4,'text-anchor':'end',
+      fill:'rgba(0,0,0,.82)','font-size':'9.5','font-family':'Poppins','font-weight':'800'});
+    lbl.textContent=ch.name; rowEl.appendChild(lbl);
+
+    let sx=0;
+    ch.vals.forEach((v,ni)=>{
+      if(v===0) return;
+      const segW=(v/maxT)*cW;
+      const col=C[ni];
+      const seg=mk('rect',{x:P4.left+sx,y,width:segW,height:RH,rx:'2'});
+      if(ch.pub){
+        seg.setAttribute('fill','rgba(255,255,255,.05)');
+        seg.setAttribute('stroke',col);
+        seg.setAttribute('stroke-width','2');
+      } else {
+        seg.setAttribute('fill',col);
+      }
+      seg.addEventListener('mouseenter',e=>{
+        svg4.classList.add('has-hover');
+        document.querySelectorAll('.bar-row').forEach(r=>r.classList.remove('active'));
+        rowEl.classList.add('active');
+        showTH(e,`${ch.name} — ${v} cas`,NARRATIFS[ni].full,col);
+      });
+      seg.addEventListener('mousemove',e=>moveTH(e));
+      seg.addEventListener('mouseleave',()=>{
+        svg4.classList.remove('has-hover');
+        document.querySelectorAll('.bar-row').forEach(r=>r.classList.remove('active'));
+        hideTH();
+      });
+      rowEl.appendChild(seg); sx+=segW;
+    });
+
+    if(total>0){
+      const tv=mk('text',{x:P4.left+sx+5,y:y+RH/2+4,'text-anchor':'start',
+        fill:'rgba(0,0,0,.35)','font-size':'8.5','font-family':'Poppins','font-weight':'700'});
+      tv.textContent=total; rowEl.appendChild(tv);
+    }
+  });
+
+  // Gridlines verticales
+  [0,20,40,60,80,100,120,149].forEach(val=>{
+    const gx=P4.left+(val/maxT)*cW;
+    if(gx>P4.left+cW) return;
+    svg4.appendChild(mk('line',{x1:gx,y1:P4.top,x2:gx,y2:P4.top+cHt,stroke:'rgba(0,0,0,.05)','stroke-width':'1'}));
+    const t=mk('text',{x:gx,y:P4.top+cHt+13,'text-anchor':'middle',fill:'rgba(0,0,0,.22)','font-size':'7.5','font-family':'Poppins'});
+    t.textContent=val; svg4.appendChild(t);
+  });
+}
+
+// ════════ DV5 — Timeline avec highlight au survol de courbe ════════
+function buildLg5(){
+  const el=document.getElementById('lg5'); el.innerHTML='';
+  NARRATIFS.forEach((n,i)=>{
+    const col=C[i];
+    const words=n.full.split(' ');
+    const short=words.slice(0,3).join(' ')+(words.length>3?'…':'');
+    const item=document.createElement('div'); item.className='lc-item';
+    const dot=document.createElement('span'); dot.className='lc-dot'; dot.style.background=col;
+    const lbl=document.createElement('span'); lbl.textContent=short;
+    const tt=document.createElement('span'); tt.className='lc-tooltip';
+    tt.innerHTML=`<span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${col};margin-right:6px;vertical-align:middle"></span>${n.full}`;
+    item.appendChild(dot); item.appendChild(lbl); item.appendChild(tt);
+    // Clic sur légende → highlight courbe
+    item.addEventListener('mouseenter',()=>highlightCurve(i,true));
+    item.addEventListener('mouseleave',()=>highlightCurve(i,false));
+    el.appendChild(item);
+  });
+}
+
+const svg5=document.getElementById('chart5-svg');
+const P5={top:18,right:18,bottom:34,left:36};
+let curve5paths=[];
+let curve5active=-1;
+
+function highlightCurve(ni,on){
+  curve5paths.forEach((p,i)=>{
+    if(on){
+      p.style.opacity= i===ni?'1':'0.15';
+      p.style.strokeWidth= i===ni?'4':'2.5';
+    } else {
+      p.style.opacity='1';
+      p.style.strokeWidth='2.5';
+    }
+  });
+}
+
+function buildChart5(){
+  svg5.innerHTML=''; curve5paths=[];
+  const W=svg5.parentElement.clientWidth;
+  const H=240;
+  const totH=H+P5.top+P5.bottom;
+  svg5.setAttribute('viewBox',`0 0 ${W} ${totH}`);
+  svg5.style.height=totH+'px';
+  const cW=W-P5.left-P5.right;
+  const maxV=Math.max(...TIMELINE.flatMap(r=>r));
+  const xS=cW/(MONTHS.length-1);
+
+  [0,10,20,30,40,50].filter(v=>v<=maxV).forEach(v=>{
+    const gy=P5.top+H-(v/maxV)*H;
+    svg5.appendChild(mk('line',{x1:P5.left,y1:gy,x2:P5.left+cW,y2:gy,stroke:'rgba(0,0,0,.06)','stroke-width':'1'}));
+    const t=mk('text',{x:P5.left-5,y:gy+4,'text-anchor':'end',fill:'rgba(0,0,0,.23)','font-size':'8','font-family':'Poppins'});
+    t.textContent=v; svg5.appendChild(t);
+  });
+
+  MONTHS.forEach((m,i)=>{
+    const gx=P5.left+i*xS;
+    svg5.appendChild(mk('line',{x1:gx,y1:P5.top,x2:gx,y2:P5.top+H,stroke:'rgba(0,0,0,.04)','stroke-width':'1'}));
+    const t=mk('text',{x:gx,y:P5.top+H+18,'text-anchor':'middle',fill:'rgba(0,0,0,.36)','font-size':'8.5','font-family':'Poppins','font-weight':'700'});
+    t.textContent=m; svg5.appendChild(t);
+  });
+
+  // Courbes
+  NARRATIFS.forEach((n,ni)=>{
+    const col=C[ni];
+    const pts=TIMELINE.map((r,i)=>[P5.left+i*xS, P5.top+H-(r[ni]/maxV)*H]);
+    let d='M'+pts[0][0]+','+pts[0][1];
+    for(let i=1;i<pts.length;i++){
+      const[px,py]=pts[i-1],[cx2,cy2]=pts[i];
+      const cpx=(px+cx2)/2;
+      d+=` C${cpx},${py} ${cpx},${cy2} ${cx2},${cy2}`;
+    }
+    const path=mk('path',{d,fill:'none',stroke:col,'stroke-width':'2.5','stroke-linejoin':'round','stroke-linecap':'round'});
+    path.style.transition='opacity .15s, stroke-width .15s';
+    svg5.appendChild(path);
+    curve5paths.push(path);
+
+    // Zone de survol large sur la courbe (chemin invisible épais)
+    const hitPath=mk('path',{d,fill:'none',stroke:'transparent','stroke-width':'18','stroke-linejoin':'round','stroke-linecap':'round'});
+    hitPath.style.cursor='pointer';
+    hitPath.addEventListener('mouseenter',e=>{
+      highlightCurve(ni,true);
+      showTH(e,n.full,'Survolez les points pour le détail par mois',col);
+    });
+    hitPath.addEventListener('mousemove',e=>moveTH(e));
+    hitPath.addEventListener('mouseleave',()=>{
+      highlightCurve(ni,false);
+      hideTH();
+    });
+    svg5.appendChild(hitPath);
+
+    // Points
+    pts.forEach(([px,py],i)=>{
+      const v=TIMELINE[i][ni];
+      if(v===0) return;
+      const dot=mk('circle',{cx:px,cy:py,r:'4.5',fill:col,stroke:'#fff','stroke-width':'2'});
+      dot.addEventListener('mouseenter',e=>{
+        highlightCurve(ni,true);
+        showTH(e,`${MONTHS[i]} — ${v} cas`,n.full,col);
+      });
+      dot.addEventListener('mousemove',e=>moveTH(e));
+      dot.addEventListener('mouseleave',()=>{
+        highlightCurve(ni,false);
+        hideTH();
+      });
+      svg5.appendChild(dot);
+    });
+  });
+}
+
+// ════════ CURSOR ════════
+const cur=document.getElementById('cur');
+const curTri=document.getElementById('cur-tri');
+document.addEventListener('mousemove',e=>{
+  cur.style.transform=`translate(${e.clientX-1}px,${e.clientY-1}px)`;
+});
+function curHover(){curTri.setAttribute('fill','#EDF249');}
+function curNorm(){curTri.setAttribute('fill','#0A0A0A');}
+document.querySelectorAll('a,button,.ctx-card,.ch-pill,.lc-item').forEach(el=>{
+  el.addEventListener('mouseenter',curHover); el.addEventListener('mouseleave',curNorm);
+});
+
+// ════════ SCROLL ════════
+window.addEventListener('scroll',()=>{
+  document.getElementById('scrollLine').style.width=(window.scrollY/(document.documentElement.scrollHeight-window.innerHeight)*100)+'%';
+});
+
+// ════════ INIT ════════
+function buildAll(){
+  buildChart1(); buildChart4(); buildChart5();
+  const t2=THEMES.reduce((s,t)=>s+t.val,0);
+  const t3=NARRATIFS.reduce((s,n)=>s+n.val,0);
+  document.getElementById('pie2-svg').setAttribute('viewBox','0 0 220 220');
+  document.getElementById('pie3-svg').setAttribute('viewBox','0 0 220 220');
+  // DV2 thèmes → palette verts
+  drawPie('pie2-svg','pie2-leg',THEMES.map(t=>({...t,full:t.name})),t2,CT);
+  // DV3 narratifs → palette bleue/principale
+  drawPie('pie3-svg','pie3-leg',NARRATIFS.map(n=>({name:n.full.split(' ').slice(0,4).join(' ')+'…',val:n.val,full:n.full})),t3,C);
+}
+
+buildLg1(); buildLg4(); buildLg5(); buildChLeg();
+window.addEventListener('resize',buildAll);
+buildAll();
+
+// ════════ RESET DV1 ════════
+function resetDV1(){
+  pinnedCh=null;
+  document.querySelectorAll('.ch-pill').forEach(p=>p.classList.remove('pinned'));
+  svg1.classList.remove('has-hover');
+  document.querySelectorAll('.bar-group').forEach(g=>g.classList.remove('active'));
+  closeTTForced();
+}
+document.addEventListener('mousedown',e=>{
+  if(ttEl.classList.contains('pin')&&!ttEl.contains(e.target)) resetDV1();
+});
+const dv1Section=document.getElementById('dv1');
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(entry=>{if(!entry.isIntersecting) resetDV1();});
+},{threshold:0.05});
+obs.observe(dv1Section);
+
+// ════════ NAV ACTIVE ════════
+const navLinks=document.querySelectorAll('.nav-links a[href^="#"], .nav-mobile a[href^="#"]');
+const sections=document.querySelectorAll('section[id]');
+const navObs=new IntersectionObserver(entries=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      navLinks.forEach(a=>a.classList.remove('active'));
+      document.querySelectorAll(`a[href="#${entry.target.id}"]`).forEach(a=>a.classList.add('active'));
+    }
+  });
+},{rootMargin:'-30% 0px -60% 0px',threshold:0});
+sections.forEach(s=>navObs.observe(s));
+
+// ════════ FERMETURE TOOLTIPS AU DÉFILEMENT HORS SECTION ════════
+const vizSections=document.querySelectorAll('.viz-section');
+const vizObs=new IntersectionObserver(entries=>{
+  entries.forEach(entry=>{
+    if(!entry.isIntersecting){
+      hideTH();
+      // Réinitialise highlight DV5 si on quitte dv5
+      if(entry.target.id==='dv5') highlightCurve(-1,false);
+      // Réinitialise DV4 hover
+      if(entry.target.id==='dv4'){
+        svg4.classList.remove('has-hover');
+        document.querySelectorAll('.bar-row').forEach(r=>r.classList.remove('active'));
+      }
+    }
+  });
+},{threshold:0.05});
+vizSections.forEach(s=>vizObs.observe(s));
+
+// ════════ BURGER MENU ════════
+document.getElementById('nav-burger').addEventListener('click',()=>{
+  document.getElementById('nav-mobile').classList.toggle('open');
+});
+document.querySelectorAll('.nav-mobile a').forEach(a=>{
+  a.addEventListener('click',()=>document.getElementById('nav-mobile').classList.remove('open'));
+});
+</script>
+</body>
+</html>

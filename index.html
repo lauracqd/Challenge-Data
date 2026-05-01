@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pradata — Challenge de la Data 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F6F6F5;--text:#0A0A0A;--muted:rgba(10,10,10,.52);--dim:rgba(10,10,10,.28);
+  --f1:#29779E;--f2:#7CCA81;--f3:#EDF249;
+  --shadow:0 4px 24px rgba(0,0,0,.07);--shadow-h:0 16px 48px rgba(0,0,0,.13);
+  --f:'Poppins',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--f);overflow-x:hidden;line-height:1.65;cursor:none}
+a,button{cursor:none}
+
+/* ── cursor ── */
+#cur{position:fixed;pointer-events:none;z-index:9999;width:20px;height:20px;left:0;top:0}
+#cur-tri{transition:fill .13s}
+#scrollLine{position:fixed;top:0;left:0;height:3px;z-index:600;width:0;transition:width .08s linear;
+  background:linear-gradient(90deg,var(--f1),var(--f2),var(--f3))}
+
+/* ── Hero background — fondu doux vers la couleur de fond ── */
+.hero-bg{
+  position:absolute;inset:0;z-index:0;pointer-events:none;
+  /* mask vertical : opaque en haut, transparent en bas → fondu doux */
+  -webkit-mask-image:linear-gradient(to bottom, black 0%, black 45%, transparent 100%);
+  mask-image:linear-gradient(to bottom, black 0%, black 45%, transparent 100%);
+}
+.hero-bg::before{
+  content:'';
+  position:absolute;
+  /* couvre tout le hero pour que le fondu soit propre */
+  inset:0;
+  background:
+    radial-gradient(ellipse 80% 70% at 88% -10%,
+      var(--f3) 0%,
+      var(--f2) 30%,
+      var(--f1) 55%,
+      #F6F6F5 80%,
+      transparent 100%);
+  opacity:.32;
+  filter:blur(40px);
+}
+.hero-bg::after{
+  content:'';
+  position:absolute;
+  width:520px;height:520px;
+  bottom:-200px;left:-160px;
+  border-radius:50%;
+  background:radial-gradient(ellipse,var(--f2) 0%,var(--f1) 45%,#F6F6F5 72%,transparent 90%);
+  opacity:.12;
+  filter:blur(60px);
+}
+
+/* ── Highlight : petit trait de marqueur, sobre ── */
+.hl{
+  position:relative;
+  display:inline;
+  color:inherit;
+  font-style:normal;
+  white-space:nowrap;
+}
+.hl::after{
+  content:'';
+  position:absolute;
+  left:-2px; right:-2px;
+  bottom:8%;
+  height:38%;
+  background:var(--f3);
+  opacity:.9;
+  z-index:-1;
+  border-radius:2px;
+  transform:skewX(-3deg);
+}
+/* variante bleue */
+.hl-b::after{background:var(--f1);opacity:.25}
+/* variante verte */
+.hl-v::after{background:var(--f2);opacity:.55}
+
+/* ── Content card — pleine largeur ── */
+.content-card{
+  background:#fff;
+  border-radius:12px;
+  padding:40px 48px 36px;
+  box-shadow:var(--shadow);
+  position:relative;
+  overflow:hidden;
+  width:100%;
+}
+.content-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:4px;
+}
+.content-card.grad-1::before{background:linear-gradient(90deg,var(--f1),var(--f2),var(--f3))}
+.content-card.grad-2::before{background:linear-gradient(90deg,var(--f3),var(--f2))}
+.content-card.grad-3::before{background:linear-gradient(90deg,var(--f3),var(--f2),var(--f1))}
+.content-card.grad-4::before{background:linear-gradient(90deg,var(--f2),var(--f1))}
+
+/* ── Nav ── */
+nav{position:sticky;top:0;z-index:500;padding:0 64px;height:54px;display:flex;align-items:center;
+  justify-content:space-between;background:rgba(246,246,245,.75);
+  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
+.nav-logo{font-size:14px;font-weight:800;letter-spacing:.02em;color:var(--text);text-decoration:none;text-transform:uppercase}
+.nav-logo span{font-weight:300;opacity:.4}
+.nav-links{display:flex;gap:2px;list-style:none}
+.nav-links a{font-size:8.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+  text-decoration:none;padding:5px 11px;border-radius:4px;transition:all .15s}
+.nav-links a:hover{color:var(--text);background:rgba(0,0,0,.06)}
+.nav-links a.active{color:#fff;background:var(--text)}
+.nav-burger{display:none;flex-direction:column;gap:5px;background:none;border:none;padding:6px}
+.nav-burger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px}
+.nav-mobile{display:none;position:fixed;top:54px;left:0;right:0;
+  background:rgba(246,246,245,.97);backdrop-filter:blur(22px);z-index:499;
+  flex-direction:column;padding:12px 20px 20px;gap:2px;border-bottom:1px solid rgba(0,0,0,.07)}
+.nav-mobile.open{display:flex}
+.nav-mobile a{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted);text-decoration:none;padding:10px 14px;border-radius:6px;transition:all .15s}
+.nav-mobile a:hover,.nav-mobile a.active{color:#fff;background:var(--text)}
+
+/* ── Hero ── */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;
+  padding:0 64px;position:relative}
+.hero-inner{position:relative;z-index:1;max-width:920px}
+.hero-kicker{font-size:9px;font-weight:700;letter-spacing:.25em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:28px;animation:fadeIn .5s ease both}
+.hero h1{font-size:clamp(48px,8vw,118px);font-weight:900;line-height:1.06;letter-spacing:-.02em;
+  text-transform:uppercase;margin-bottom:28px;animation:fadeUp .6s ease .1s both;color:var(--text)}
+.hero-desc{font-size:15px;color:rgba(10,10,10,.72);line-height:1.85;max-width:540px;
+  animation:fadeUp .6s ease .2s both;margin-bottom:48px}
+.hero-ctas{display:flex;gap:14px;flex-wrap:wrap;animation:fadeUp .6s ease .3s both}
+.btn-primary{display:inline-flex;align-items:center;gap:8px;padding:13px 24px;
+  background:var(--text);color:#fff;border-radius:6px;font-size:10px;font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;text-decoration:none;transition:all .18s}
+.btn-primary:hover{background:#222;transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.18)}
+.btn-secondary{display:inline-flex;align-items:center;gap:8px;padding:13px 24px;
+  background:transparent;color:var(--text);border-radius:6px;font-size:10px;font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;text-decoration:none;
+  border:1.5px solid rgba(0,0,0,.18);transition:all .18s}
+.btn-secondary:hover{border-color:var(--text);background:rgba(0,0,0,.04);transform:translateY(-2px)}
+
+/* scroll hint */
+.scroll-hint{position:absolute;bottom:36px;left:64px;display:flex;align-items:center;gap:10px;
+  font-size:8px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);
+  animation:fadeIn 1s ease .8s both;z-index:1}
+.scroll-line{width:40px;height:1px;background:var(--muted)}
+
+/* ── Sections ── */
+.section{padding:80px 64px}
+.section-kicker{font-size:8.5px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:16px}
+.section-title{font-size:clamp(26px,3.5vw,48px);font-weight:900;letter-spacing:-.01em;
+  text-transform:uppercase;margin-bottom:36px;line-height:1.15;color:var(--text)}
+
+/* ── Réflexes section — 3 cartes ── */
+.reflexes-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:8px}
+.reflex-card{background:#fff;border-radius:12px;padding:32px 28px;box-shadow:var(--shadow);
+  position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s}
+.reflex-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-h)}
+.reflex-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px}
+.reflex-card:nth-child(1)::before{background:linear-gradient(90deg,var(--f1),var(--f2))}
+.reflex-card:nth-child(2)::before{background:linear-gradient(90deg,var(--f2),var(--f3))}
+.reflex-card:nth-child(3)::before{background:linear-gradient(90deg,var(--f3),var(--f2),var(--f1))}
+.reflex-num{font-size:52px;font-weight:900;line-height:1;
+  color:transparent;-webkit-text-stroke:1.5px rgba(0,0,0,.12);margin-bottom:14px}
+.reflex-title{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;
+  margin-bottom:10px;line-height:1.25}
+.reflex-desc{font-size:12px;color:var(--muted);line-height:1.85}
+.reflex-tag{display:inline-block;font-size:7px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;padding:3px 9px;border-radius:3px;background:rgba(0,0,0,.05);
+  color:var(--muted);margin-bottom:12px}
+
+/* ── Quiz section ── */
+.quiz-desc{font-size:14px;color:rgba(10,10,10,.76);line-height:1.9;margin-bottom:16px}
+
+/* ── À propos ── */
+.contexte-text p{font-size:13.5px;color:rgba(10,10,10,.74);line-height:1.9;margin-bottom:14px}
+.contexte-text p:last-child{margin-bottom:0}
+.contexte-text p strong{color:var(--text);font-weight:700}
+
+/* ── Footer ── */
+footer{border-top:1px solid rgba(0,0,0,.07);padding:22px 64px;display:flex;align-items:center;justify-content:space-between}
+.f-logo{font-size:12px;font-weight:800;text-transform:uppercase;color:var(--muted);letter-spacing:.06em;text-decoration:none;transition:color .14s}
+.f-logo:hover{color:var(--text)}
+.f-meta{font-size:7.5px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);text-align:center}
+.f-links{display:flex;gap:12px;list-style:none}
+.f-links a{font-size:7.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);text-decoration:none;transition:color .14s}
+.f-links a:hover{color:var(--text)}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  nav{padding:0 16px}
+  .nav-links{display:none}
+  .nav-burger{display:flex}
+  .hero{padding:80px 16px 60px;min-height:95vh;justify-content:flex-start}
+  .section{padding:48px 16px}
+  .content-card{padding:28px 20px 24px}
+  .reflexes-grid{grid-template-columns:1fr}
+  footer{flex-direction:column;gap:9px;text-align:center;padding:18px 16px}
+  .scroll-hint{left:16px;bottom:20px}
+  #cur{display:none}
+  body,a,button{cursor:auto}
+}
+@media(min-width:769px) and (max-width:1024px){
+  nav,.hero,.section{padding-left:32px;padding-right:32px}
+  .reflexes-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<div id="cur"><svg viewBox="0 0 20 20" fill="none"><path id="cur-tri" d="M3 2 L3 14 L7 10.5 L9.5 16 L11 15.3 L8.5 9.8 L13 9.8 Z" fill="#0A0A0A" stroke="#0A0A0A" stroke-width="0" stroke-linejoin="round" stroke-linecap="round"/></svg></div>
+<div id="scrollLine"></div>
+
+<nav>
+  <a href="index.html" class="nav-logo"><span style="font-weight:300;opacity:.45">pra</span>data</a>
+  <ul class="nav-links">
+    <li><a href="index.html" class="active">Accueil</a></li>
+    <li><a href="JeuClimatVérité.html">Le quiz</a></li>
+    <li><a href="dataviz-medias.html">Nos visualisations</a></li>
+    <li><a href="#comprendre">Comprendre</a></li>
+    <li><a href="#apropos">À propos</a></li>
+  </ul>
+  <button class="nav-burger" id="nav-burger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+<div class="nav-mobile" id="nav-mobile">
+  <a href="index.html" class="active">Accueil</a>
+  <a href="JeuClimatVérité.html">Le quiz</a>
+  <a href="dataviz-medias.html">Nos visualisations</a>
+  <a href="#comprendre">Comprendre</a>
+  <a href="#apropos">À propos de nous</a>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-inner">
+    <p class="hero-kicker">IUT Bordeaux Montaigne · BUT Infonum · Challenge de la Data 2026</p>
+    <h1>Fais gaffe<br>aux <span class="hl">intox</span></h1>
+    <p class="hero-desc">Nous c'est Pradata. On décrypte la <strong>mésinformation climatique</strong> dans les médias français — avec des données, un quiz, et des outils concrets pour ne plus se faire avoir.</p>
+    <div class="hero-ctas">
+      <a href="JeuClimatVérité.html" class="btn-primary">Faire le quiz <span>→</span></a>
+      <a href="dataviz-medias.html" class="btn-secondary">Nos visualisations <span>→</span></a>
+    </div>
+  </div>
+  <div class="scroll-hint">
+    <span class="scroll-line"></span>
+    <span>Découvrir</span>
+  </div>
+</section>
+
+<!-- JEU -->
+<section class="section" id="jeu">
+  <p class="section-kicker">Mini-jeu · Sensibilisation</p>
+  <h2 class="section-title">T'es capable de repérer<br>le <span class="hl">faux</span>&nbsp;?</h2>
+
+  <div class="content-card grad-1">
+    <p class="quiz-desc">
+      On t'a préparé un quiz basé sur de <strong>vrais extraits de médias français</strong>. Des vraies phrases, des vrais JT, de vraies intox diffusées à la télé. À toi de trier le vrai du faux.
+    </p>
+    <p class="quiz-desc" style="margin-bottom:32px">
+      Spoiler&nbsp;: c'est <strong>plus dur que t'imagines</strong>. Et c'est exactement pour ça que c'est important d'en parler.
+    </p>
+    <a href="JeuClimatVérité.html" class="btn-primary" style="font-size:11px;padding:15px 28px">
+      Lancer le quiz →
+    </a>
+  </div>
+</section>
+
+<!-- COMPRENDRE — 3 réflexes, messages de sensibilisation discrets -->
+<section class="section" id="comprendre">
+  <p class="section-kicker">Sensibilisation · Ce qu'on veut que tu retiennes</p>
+  <h2 class="section-title">3 réflexes pour ne plus<br>se faire <span class="hl">manipuler</span></h2>
+
+  <div class="reflexes-grid">
+
+    <!-- Réflexe 1 : Lecture latérale -->
+    <div class="reflex-card">
+      <div class="reflex-num">01</div>
+      <span class="reflex-tag">Vérification · Méthode</span>
+      <h3 class="reflex-title">Arrête-toi avant de partager</h3>
+      <p class="reflex-desc">
+        Une info choc sur le climat ? La peur et la colère brouillent le jugement.
+        Avant de partager, ouvre d'autres onglets : cherche l'auteur, la source, ce que les médias de référence en disent.
+        C'est la <strong>lecture latérale</strong> — et ça prend 90 secondes.
+      </p>
+    </div>
+
+    <!-- Réflexe 2 : Narratifs de l'inaction -->
+    <div class="reflex-card">
+      <div class="reflex-num">02</div>
+      <span class="reflex-tag">Discernement · Narratifs</span>
+      <h3 class="reflex-title">Méfie-toi du "c'est trop tard"</h3>
+      <p class="reflex-desc">
+        La désinformation climatique ne crie plus "le réchauffement n'existe pas". Elle murmure :
+        <em>"c'est trop tard", "c'est la faute des autres", "les experts ne savent pas"</em>.
+        Un graphique vrai peut raconter un mensonge. Cherche le <strong>consensus scientifique</strong>, pas l'anecdote.
+      </p>
+    </div>
+
+    <!-- Réflexe 3 : Diète médiatique -->
+    <div class="reflex-card">
+      <div class="reflex-num">03</div>
+      <span class="reflex-tag">Bien-être · Sources</span>
+      <h3 class="reflex-title">Reprends le contrôle de ton feed</h3>
+      <p class="reflex-desc">
+        Les algorithmes transforment une prise de conscience nécessaire en peur paralysante.
+        30 minutes de doomscrolling en moins par jour, ça change tout.
+        Choisis des sources qui t'expliquent <strong>comment agir</strong>, pas seulement pourquoi avoir peur.
+      </p>
+    </div>
+
+  </div>
+</section>
+
+<!-- À PROPOS -->
+<section class="section" id="apropos">
+  <p class="section-kicker">Qui sommes-nous ?</p>
+  <h2 class="section-title">On est <span class="hl">Pradata</span>,<br>et on a un truc à dire.</h2>
+
+  <div class="content-card grad-3">
+    <div class="contexte-text">
+      <p>On est un groupe d'étudiants en <strong>BUT Infonum à l'IUT Bordeaux Montaigne</strong>, et on participe au <strong>Challenge de la Data 2026</strong> sur la mésinformation climatique dans les médias français.</p>
+      <p>Ce qui nous a motivés ? Les chiffres. La mésinformation climatique, c'est pas juste un truc de vieux sur les chaînes TV — c'est partout, ça se propage vite, et les réseaux sociaux l'amplifient à une vitesse de dingue.</p>
+      <p>Un post climato-sceptique a en moyenne <strong><span class="hl">3× plus de partages</span></strong> qu'un article scientifique sur les mêmes plateformes. Les algos poussent le sensationnel — et on se retrouve dans une bulle d'infos déconnectée de la réalité.</p>
+      <p>Alors on a voulu rendre ces données <strong>visibles, accessibles, et surtout utiles</strong>. Comprendre comment la désinformation fonctionne, c'est déjà le premier pas pour ne plus se faire avoir.</p>
+    </div>
+  </div>
+</section>
+
+<!-- RÉSEAUX SOCIAUX -->
+<section class="section" id="reseaux" style="padding-top:0">
+  <div class="content-card grad-2" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:28px">
+    <div>
+      <p class="section-kicker" style="margin-bottom:10px">On est aussi sur les réseaux</p>
+      <h2 style="font-size:clamp(20px,2.5vw,34px);font-weight:900;text-transform:uppercase;letter-spacing:-.01em;line-height:1.15;margin-bottom:10px">
+        Suis-nous,<br>on poste des trucs <span class="hl">sympas</span>&nbsp;🌱
+      </h2>
+      <p style="font-size:13px;color:rgba(10,10,10,.68);line-height:1.8;max-width:480px">
+        On publie nos découvertes, des visuels de données et des décryptages courts sur l'actu clima. Rejoins-nous sur Instagram et TikTok&nbsp;!
+      </p>
+    </div>
+    <div style="display:flex;gap:14px;flex-wrap:wrap">
+      <a href="https://www.instagram.com/pra_data" target="_blank" rel="noopener" class="btn-primary" style="gap:10px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+        @pra_data
+      </a>
+      <a href="https://www.tiktok.com/@pra_data" target="_blank" rel="noopener" class="btn-secondary" style="gap:10px">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.73a4.85 4.85 0 0 1-1.01-.04z"/></svg>
+        TikTok
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <a href="index.html" class="f-logo"><span style="font-weight:300;opacity:.45">pra</span>data</a>
+  <p class="f-meta">IUT Bordeaux Montaigne · Challenge de la Data 2026</p>
+  <ul class="f-links">
+    <li><a href="index.html">Accueil</a></li>
+    <li><a href="JeuClimatVérité.html">Quiz</a></li>
+    <li><a href="dataviz-medias.html">Visualisations</a></li>
+    <li><a href="#apropos">À propos</a></li>
+  </ul>
+</footer>
+
+<script>
+const cur=document.getElementById('cur');
+const curTri=document.getElementById('cur-tri');
+document.addEventListener('mousemove',e=>{
+  cur.style.transform=`translate(${e.clientX-1}px,${e.clientY-1}px)`;
+});
+function curHover(){curTri.setAttribute('fill','#EDF249');}
+function curNorm(){curTri.setAttribute('fill','#0A0A0A');}
+document.querySelectorAll('a,button').forEach(el=>{
+  el.addEventListener('mouseenter',curHover);
+  el.addEventListener('mouseleave',curNorm);
+});
+window.addEventListener('scroll',()=>{
+  document.getElementById('scrollLine').style.width=(window.scrollY/(document.documentElement.scrollHeight-window.innerHeight)*100)+'%';
+});
+document.getElementById('nav-burger').addEventListener('click',()=>{
+  document.getElementById('nav-mobile').classList.toggle('open');
+});
+document.querySelectorAll('.nav-mobile a').forEach(a=>{
+  a.addEventListener('click',()=>document.getElementById('nav-mobile').classList.remove('open'));
+});
+</script>
+</body>
+</html>
